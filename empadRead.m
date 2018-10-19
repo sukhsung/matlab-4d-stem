@@ -2,7 +2,7 @@
 
 fname = 'test.raw';
 
-fid = fopen('test.raw');
+fid = fopen('/Volumes/Untitled/tas2_03_14mx_cl380mm_ap70_30mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw');
 
 
 i = 16;

@@ -16,7 +16,7 @@ function vis4D(im_4d)
     
     imagesc(ax1,im_ave_log)
     imagesc(ax2,zeros(ny,nx))
-    colormap(f,'inferno')
+    %colormap(f,'inferno')
     
     axis(ax1,'equal','off')
     h1 = impoint(ax1,[10,10]);
@@ -30,7 +30,7 @@ end
 function draw34D(xy,im_4d,ax)
     xy = round(xy);
     x = xy(1); y = xy(2);
-    
+     
     sup_im = squeeze(im_4d(:,:,y,x));
     imagesc(ax,sup_im)
     axis(ax,'equal','tight')
