@@ -36,7 +36,7 @@ axis equal
 viscircles(centers, radii);
 
 
-mradperpix = 30/radii;
+%mradperpix = 30/radii;
 
 
 %% Form Bright Field Image
@@ -54,8 +54,8 @@ vis4D(bf4D)
 
 %% Form ADF Image
 
-adf_min = 20;
-adf_max = 50;
+adf_min = 20; %in px
+adf_max = 50; %in px
 
 adf_mask = ( rr <= adf_max^2 & rr >= adf_min^2);
 
