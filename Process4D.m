@@ -48,11 +48,18 @@ rr = (yy - centers(1)).^2 + (xx - centers(2)).^2;
 
 bf_mask = ( rr <= radii^2 );
 
-bf_4D = im4D.*bf_mask;
-bf_CBED = squeeze( mean( mean( bf_4D, 3), 4) );
+bf4D = im4D.*bf_mask;
 
-%% Form ADF FD
+vis4D(bf4D)
 
+%% Form ADF Image
 
+adf_min = 20;
+adf_max = 50;
 
+adf_mask = ( rr <= adf_max^2 & rr >= adf_min^2);
+
+adf4D = im4D.*adf_mask;
+
+vis4D(adf4D)
 
