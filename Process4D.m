@@ -30,6 +30,7 @@ CBED_thresh = CBED_ave;
 CBED_thresh( CBED_thresh > max_thresh*max_cbed ) = max_thresh * max_cbed;
 CBED_thresh( CBED_thresh < min_thresh*max_cbed ) = min_thresh * max_cbed;
 imagesc(CBED_thresh);
+colormap inferno
 axis equal
 
 [centers,radii] = imfindcircles(CBED_thresh,[10 20],'ObjectPolarity','bright','Sensitivity',0.9);
