@@ -1,6 +1,6 @@
 %% Read Empad Data
 
-fname = 'test.raw';
+fname = 'tas2_07_14mx_cl380mm_ap70_30mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
 
 fid = fopen(fname);
 
@@ -42,8 +42,9 @@ viscircles(centers, radii);
 
 %% Form Bright Field Image
 
+im4D = im4D - min(im4D(:));
 [nx, ny, nsy, nsx] = size(im4D);
-[xx, yy, sxx, syy] = ndgrid(1:nx, 1:ny,1:nsx,1:nsy);
+[xx, yy, ~, ~] = ndgrid(1:nx, 1:ny,1:nsx,1:nsy);
 
 rr = (yy - centers(1)).^2 + (xx - centers(2)).^2;
 
