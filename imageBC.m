@@ -17,7 +17,15 @@ function [f,h] = imageBC(im)
     sl1 = uicontrol('style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
     sl2 = uicontrol('style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
     
+    % Add button
+    bt = uicontrol('style','pushbutton','String','Apply','CallBack', @(hObject,eventdata) appliedIm(im,get(sl1,'Value'),get(sl2,'Value')));
+    
     % Listen to slider values and change B & C
     addlistener(sl1, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
     addlistener(sl2, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
+end
+
+function appliedIm(im,cmin,cmax)
+    figure
+    imagesc(im,[cmin, cmax])
 end
