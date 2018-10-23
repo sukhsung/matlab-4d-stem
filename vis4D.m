@@ -15,7 +15,17 @@ function vis4D(im_4d)
     colorbar(ax2)
 
     
-   addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,im_4d,im2,ax2));
+    % Find default min, max
+    cmin = min(im_4d(:));
+    cmax = max(im_4d(:)); 
+    
+    sl1 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
+    sl2 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
+    
+    addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,im_4d,im2,ax2));
+    % Listen to slider values and change B & C
+    addlistener(sl1, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
+    addlistener(sl2, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
 
 end
 

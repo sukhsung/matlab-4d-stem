@@ -5,7 +5,6 @@ function [f,h] = imageBC(im)
     
     % Create new figure and perform imagesc,
     % return figure, imagesc handle
-    
     f = figure;
     h = imagesc(im);
 
