@@ -39,14 +39,10 @@ for sx = 1:nsx
 
             cur_subIm = squeeze(im4D( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding,sx,sy));
             
-            max_subIm = max(cur_subIm(:));
-
-            BW_subIm = imbinarize(cur_subIm,max_subIm*0.979);
-
-            imagesc(BW_subIm)
-
-            [center, radius] = imfindcircles(BW_subIm,[3,6],'ObjectPolarity','bright','Sensitivity',0.98);
-
+            fit = fitDisk(cur_subIm,9,9,4);
+            
+            fitted_disk = drawDisk(
+            
             centers(disk_ind,sx,sy,:) = center + [x0(disk_ind)-padding-1, y0(disk_ind)-padding-1];
             radii(disk_ind,sx,sy) = radius;
         end
