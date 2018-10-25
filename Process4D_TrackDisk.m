@@ -25,13 +25,13 @@ pause
 [x0, y0] = em_clickAddRemove([], [], CBED_ave, false);
 x0 = round(x0);
 y0 = round(y0);
-%%
-numDisk = length(x0);
-padding = 8;
-centers = zeros(numDisk,nsx,nsy,2);
-radii = zeros(numDisk,nsx,nsy,1);
+
 
 %% Fit Gaussian to averaged CBED to estimate parameters
+numDisk = length(x0);
+padding = 4;
+centers = zeros(numDisk,nsx,nsy,2);
+radii = zeros(numDisk,nsx,nsy,1);
 disk_ind = 1;
 [indep(:,:,1), indep(:,:,2)] = meshgrid(1:2*padding+1,1:2*padding+1);
 subIm = CBED_ave( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding);
@@ -56,13 +56,25 @@ imagesc(gaus2d(param_fit,indep));
 
 %%
 
-m = mean(subIm(:));
+m = median(subIm(:));
 s = std(subIm(:));
 param_guess = param_fit;
 lb = [param_guess(1)-2, param_guess(2)-2, param_guess(3)*0.8, 0,0];
 ub = [param_guess(1)+2, param_guess(2)+2, param_guess(3)*1.2, inf,inf];
 
 progress= zeros(nsy,nsx);
+
+% %             
+subplot(1,3,1)
+h_subim = imagesc(progress);
+axis equal off
+subplot(1,3,2)
+h_fit = imagesc(progress);
+axis equal off
+subplot(1,3,3)
+h_progress = imagesc(progress);
+axis equal off
+drawnow
 for sx = 1:nsx
     disp(sx)
     for sy = 1:nsy
@@ -70,8 +82,8 @@ for sx = 1:nsx
             % Get Sub Matrix
             cur_subIm = squeeze(im4D( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding,sx,sy));
             % remove outlier of image
-            cur_subIm( cur_subIm < m -2*s) = m-2*s;
-            cur_subIm( cur_subIm > m +2*s) = m+2*s;
+            cur_subIm( cur_subIm < m -s) = m-s;
+            cur_subIm( cur_subIm > m +s) = m+s;
             
             % Fit Gaussian
             cur_param_fit = lsqcurvefit(@gaus2d, param_guess, indep, subIm,lb,ub,opt);
@@ -81,16 +93,14 @@ for sx = 1:nsx
             
             centers(disk_ind,sx,sy,:) = cur_param_fit(1:2) + [x0(disk_ind)-padding-1, y0(disk_ind)-padding-1];
             radii(disk_ind,sx,sy) = cur_param_fit(3);
-% %             
-%             subplot(1,2,1)
-%             imagesc(cur_subIm);
-%             subplot(1,2,2)
-%             imagesc(gaus2d(cur_param_fit,indep));
-%             drawnow
+            
+       %     set(h_subim, 'CData', cur_subIm);
+        %    set(h_fit, 'CData', gaus2d(cur_param_fit,indep));
+       %     drawnow;
         end
     end
     progress(:,sx) = ones(nsy,1);
-    imshow(progress)
+    set(h_progress, 'CData', progress);
     drawnow
 end
 
