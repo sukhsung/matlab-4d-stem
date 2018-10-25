@@ -31,20 +31,75 @@ padding = 8;
 centers = zeros(numDisk,nsx,nsy,2);
 radii = zeros(numDisk,nsx,nsy,1);
 
+%% Fit Gaussian to averaged CBED to estimate parameters
+disk_ind = 1;
+[indep(:,:,1), indep(:,:,2)] = meshgrid(1:2*padding+1,1:2*padding+1);
+subIm = CBED_ave( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding);
+param_guess = [padding+1, padding+1, padding, max(subIm(:)), min(subIm(:))];
+lb = [padding/2, padding/2, 0, 0, 0];
+ub = [3*padding/2, 3*padding/2, inf,inf,inf];
 
+tol = 1e-7;
+maxFunEvals = 1e6;
+maxIter = 1e3;
+opt = optimset('Display','Iter','TolFun',tol,'TolX',tol,'MaxFunEvals',maxFunEvals,'MaxIter',maxIter);
+  
+param_fit = lsqcurvefit(@gaus2d, param_guess, indep, subIm,lb,ub,opt);
+
+
+figure
+subplot(1,2,1)
+imagesc(subIm);
+subplot(1,2,2)
+imagesc(gaus2d(param_fit,indep));
+
+
+%%
+
+m = mean(subIm(:));
+s = std(subIm(:));
+param_guess = param_fit;
+lb = [param_guess(1)-2, param_guess(2)-2, param_guess(3)*0.8, 0,0];
+ub = [param_guess(1)+2, param_guess(2)+2, param_guess(3)*1.2, inf,inf];
+
+progress= zeros(nsy,nsx);
 for sx = 1:nsx
-            disp(sx)
+    disp(sx)
     for sy = 1:nsy
         for disk_ind = 1:numDisk
-
+            % Get Sub Matrix
             cur_subIm = squeeze(im4D( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding,sx,sy));
+            % remove outlier of image
+            cur_subIm( cur_subIm < m -2*s) = m-2*s;
+            cur_subIm( cur_subIm > m +2*s) = m+2*s;
             
-            fit = fitDisk(cur_subIm,9,9,4);
+            % Fit Gaussian
+            cur_param_fit = lsqcurvefit(@gaus2d, param_guess, indep, subIm,lb,ub,opt);
             
-            fitted_disk = drawDisk(
+            % Save center and sigma
+
             
-            centers(disk_ind,sx,sy,:) = center + [x0(disk_ind)-padding-1, y0(disk_ind)-padding-1];
-            radii(disk_ind,sx,sy) = radius;
+            centers(disk_ind,sx,sy,:) = cur_param_fit(1:2) + [x0(disk_ind)-padding-1, y0(disk_ind)-padding-1];
+            radii(disk_ind,sx,sy) = cur_param_fit(3);
+% %             
+%             subplot(1,2,1)
+%             imagesc(cur_subIm);
+%             subplot(1,2,2)
+%             imagesc(gaus2d(cur_param_fit,indep));
+%             drawnow
         end
     end
+    progress(:,sx) = ones(nsy,1);
+    imshow(progress)
+    drawnow
 end
+
+%% Analysis
+% Choose reference point
+centers = centers - centers(:,1,1,:);
+dr =  sqrt( centers(:,:,:,1).^2 + centers(:,:,:,2).^2);
+figure
+imagesc(squeeze(dr(1,:,:,:)))
+
+
+
