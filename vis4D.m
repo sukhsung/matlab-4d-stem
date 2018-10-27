@@ -9,8 +9,8 @@ function vis4D(im_4d)
     imagesc(ax1,im_ave)
     colormap(f,'inferno')
     axis(ax1,'equal','off')
-    h1 = drawpoint(ax1,'Deletable',false,'Position',[50 50]);
-    im2 = imagesc(ax2,squeeze(im_4d(:,:,50, 50)));    
+    h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1]);
+    im2 = imagesc(ax2,squeeze(im_4d(:,:,1, 1)));    
     axis(ax2,'equal','tight','off')
     colorbar(ax2)
 

@@ -1,15 +1,12 @@
 %% Read Empad Data
 
 %wdir = '/Users/sukhyun/Desktop/data_from_RH/20161122_EM_2016_11_22_TaS2hovden/';
-
+wdir = 'data/';
 fname = 'tas2_06_14mx_cl380mm_ap70_30mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
-fid = fopen( fname );
 
-A = fread(fid, 128*128*128*130,'long',0,'l');
-im4D = reshape(A,[128,130,128,128]);
+im4D = empadRead( [wdir, fname] ,ns );
 
-
-%% Get Average CBED);
+%% Get Average CBED;
 CBED_ave = squeeze( mean( mean( im4D, 3), 4) );
 
 f_cbed = figure;
