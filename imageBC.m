@@ -31,6 +31,10 @@ end
 function appliedIm(im,cmin,cmax)
     figure
     imagesc(im,[cmin, cmax])
+    im_thr = im;
+    im_thr( im_thr > cmax ) = cmax;
+    im_thr( im_thr < cmin ) = cmin;
+    assignin('base','im_thr',im_thr)
 end
 
 function saveIm(im,sl1,sl2,txtbox)

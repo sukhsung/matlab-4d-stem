@@ -55,5 +55,21 @@ classdef empad
             obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
 
+        function mask = generateRadialMask( obj, x0, y0, ri, ro )
+            [xx, yy, ~, ~] = ndgrid(1:obj.nx, 1:obj.ny,1:obj.nsx,1:obj.nsy);
+            rr = (yy - y0).^2 + (xx - x0).^2;
+            
+            if ri == 0
+                %BF
+                mask = ( rr <= ro^2 );
+            else
+                %ADF
+                mask = ( rr <= ro^2 & rr >= ri^2);
+            end
+        end
+        
+        function obj = applyDetector(obj, x0, y0, ri, ro)
+            obj.im4D = obj.im4D.*obj.generateRadialMask(x0,y0,ri,ro);
+        end
     end
 end

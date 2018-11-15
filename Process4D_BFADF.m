@@ -4,61 +4,34 @@
 wdir = 'data/';
 fname = 'tas2_06_14mx_cl380mm_ap70_30mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
 
-im4D = empadRead( [wdir, fname] ,ns );
-
+e = empad( [wdir, fname], 128 );
+vis4D(e.im4D)
 %% Get Average CBED;
-CBED_ave = squeeze( mean( mean( im4D, 3), 4) );
+CBED_ave = e.pacbed;
 
 f_cbed = figure;
-imagesc(CBED_ave)
+imageBC(CBED_ave)
 axis equal
 colormap inferno
-
-%% Find the Center Disk
-
-f_cbed_thresh = figure;
-max_cbed = max(CBED_ave(:));
-min_cbed = max(CBED_ave(:));
-
-max_thresh = 0.9;
-min_thresh = 0.88;
-
-CBED_thresh = CBED_ave;
-CBED_thresh( CBED_thresh > max_thresh*max_cbed ) = max_thresh * max_cbed;
-CBED_thresh( CBED_thresh < min_thresh*max_cbed ) = min_thresh * max_cbed;
-imagesc(CBED_thresh);
-colormap inferno
-axis equal
-
-[centers,radii] = imfindcircles(CBED_thresh,[10 20],'ObjectPolarity','bright','Sensitivity',0.9);
-viscircles(centers, radii);
-
+title('Adjust Contrast and Click Apply')
+%%
+CBED_thresh = im_thr;
+[center,radius] = imfindcircles(CBED_thresh,[10 25],'ObjectPolarity','bright','Sensitivity',0.90);
+viscircles(center, radius);
 
 %mradperpix = 30/radii;
 
 
 %% Form Bright Field Image
 
-im4D = im4D - min(im4D(:));
-[nx, ny, nsy, nsx] = size(im4D);
-[xx, yy, ~, ~] = ndgrid(1:nx, 1:ny,1:nsx,1:nsy);
-
-rr = (yy - centers(1)).^2 + (xx - centers(2)).^2;
-
-bf_mask = ( rr <= radii^2 );
-
-bf4D = im4D.*bf_mask;
-
-vis4D(bf4D)
+bf = e.applyDetector(center(2),center(1), 0, radius);
+vis4D(bf.im4D)
 
 %% Form ADF Image
 
 adf_min = 20; %in px
 adf_max = 50; %in px
 
-adf_mask = ( rr <= adf_max^2 & rr >= adf_min^2);
 
-adf4D = im4D.*adf_mask;
-
-vis4D(adf4D)
-
+adf = e.applyDetector(center(2),center(1), adf_min, adf_max);
+vis4D(adf.im4D)

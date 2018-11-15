@@ -5,7 +5,7 @@ fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x
 fid = fopen([data_dir, fname]);
 
 nsx = 128;
-nsy = 128;
+nsy = 12]8;
 nx = 128;
 ny = 128;
 
