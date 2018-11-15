@@ -1,22 +1,14 @@
 %% Read Empad Data
 
 data_dir = 'data/';
+wdir = 'data/';
 fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
-fid = fopen([data_dir, fname]);
 
-nsx = 128;
-nsy = 12]8;
-nx = 128;
-ny = 128;
-
-
-A = fread(fid, nx*(ny+2)*nsx*nsy,'long',0,'l');
-A = reshape(A,[ny, nx+2,nsx,nsy]);
-
-im4D = A(:,3:nx,:,:);
+e = empad( [wdir, fname], 128 );
+vis4D(e.im4D)
 
 %% Get Average CBED;
-CBED_ave = squeeze( mean( mean( im4D, 3), 4) );
+CBED_ave = e.pacbed;
 
 %% Manually choose disk positions
 imageBC(CBED_ave)
@@ -30,6 +22,10 @@ y0 = round(y0);
 %% Fit Gaussian to averaged CBED to estimate parameters
 numDisk = length(x0);
 padding = 4;
+
+nsx = e.nsx;
+nsy = e.nsy;
+
 centers = zeros(numDisk,nsx,nsy,2);
 radii = zeros(numDisk,nsx,nsy,1);
 for disk_ind = 1:numDisk
@@ -88,7 +84,7 @@ for sx = 1:nsx
     for sy = 1:nsy
         for disk_ind = 1:numDisk
             % Get Sub Matrix
-            cur_subIm = squeeze(im4D( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding,sx,sy));
+            cur_subIm = squeeze(e.im4D( y0(disk_ind)-padding:y0(disk_ind)+padding,x0(disk_ind)-padding:x0(disk_ind)+padding,sx,sy));
             
             [xc, yc] = centerOfMass(cur_subIm);
             

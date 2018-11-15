@@ -14,7 +14,6 @@ imageBC(CBED_ave)
 axis equal
 colormap inferno
 title('Adjust Contrast and Click Apply')
-%%
 CBED_thresh = im_thr;
 [center,radius] = imfindcircles(CBED_thresh,[10 25],'ObjectPolarity','bright','Sensitivity',0.90);
 viscircles(center, radius);
