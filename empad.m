@@ -27,7 +27,7 @@ classdef empad
             A = fread(fid, obj.nx*(obj.ny+2)*obj.nsx*obj.nsy,'long',0,'l');
             A = reshape(A,[obj.ny, obj.nx+2,obj.nsx,obj.nsy]);
 
-            obj.im4D = A(:,3:end,:,:);
+            obj.im4D = A(:,1:end-2,:,:);
             obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
         

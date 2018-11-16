@@ -2,10 +2,15 @@
 
 data_dir = 'data/';
 wdir = 'data/';
-fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
+%wdir = 'C:/Users/in931/Desktop/';
+%fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
 
-e = empad( [wdir, fname], 128 );
-vis4D(e.im4D)
+fname = '05_TaS2_250C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
+fname = '11_TaS2_250C_80keV_80kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
+%fname = '12_TaS2_250C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_864step_x64_y64.raw';
+e = empad( [wdir,fname],128);
+%e2 = empad( [wdir, fname], 64 );
+vis4D(e2.im4D)
 
 %% Get Average CBED;
 CBED_ave = e.pacbed;

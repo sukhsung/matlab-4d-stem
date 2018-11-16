@@ -17,6 +17,15 @@ title('Adjust Contrast and Click Apply')
 CBED_thresh = im_thr;
 [center,radius] = imfindcircles(CBED_thresh,[10 25],'ObjectPolarity','bright','Sensitivity',0.90);
 viscircles(center, radius);
+pause
+if isempty(radius)
+    title('Click Center of BF Disk then edge')
+    [xm,ym] = ginput(2);
+    center = [xm(1), ym(1)];
+    radius = sqrt( (xm(1)-xm(2))^2 + (ym(1)-ym(2))^2 );
+end
+
+
 
 %mradperpix = 30/radii;
 

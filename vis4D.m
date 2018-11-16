@@ -7,7 +7,7 @@ function vis4D(im_4d)
     ax2 = subplot(1,2,2);
     
     imagesc(ax1,im_ave)
-    colormap(f,'inferno')
+    colormap(f,parula(65535))
     axis(ax1,'equal','off')
     h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1]);
     im2 = imagesc(ax2,squeeze(im_4d(:,:,1, 1)));    
