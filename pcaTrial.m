@@ -43,7 +43,7 @@ end
 %clear e
 
 pca_input = zeros(nsx*nsy, nx*ny);
-for sx = 1: nsx
+for sx = 1: nsxz
     for sy = 1: nsy
         ind = sub2ind([nsy,nsx],sy,sx);
         
