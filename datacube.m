@@ -22,18 +22,6 @@ classdef datacube
             obj.nx = input_size(1);
             obj.ny = input_size(2);
             obj.im4D = im4D;
-%             fid = fopen( fname );
-%             obj.nsx = ns;
-%             obj.nsy = ns;
-%             obj.nx = 128;
-%             obj.ny = 128;
-% 
-% 
-%             A = fread(fid, obj.nx*(obj.ny+2)*obj.nsx*obj.nsy,'long',0,'l');
-%             A = reshape(A,[obj.ny, obj.nx+2,obj.nsx,obj.nsy]);
-% 
-%             obj.im4D = A(:,1:end-2,:,:);
-            %obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
         
         function pacbed = getPacbed(obj)
@@ -43,6 +31,71 @@ classdef datacube
             scan = squeeze(mean(mean(obj.im4D,1),2));
         end
         
+        function vis4D(varargin)
+            %im4D = varargin{1};
+            thisObj = varargin{1};
+            if nargin > 1
+                searchDim = varargin{2};
+            else
+                searchDim = 'scan';
+            end
+
+
+            switch searchDim
+                case 'scan'
+                    im_ave = squeeze( mean( mean( thisObj.im4D, 1), 2) );
+                    im_init = squeeze(thisObj.im4D(:,:,1,1));
+                case 'detector'
+                    im_ave = squeeze( mean( mean( thisObj.im4D, 3), 4) );            
+                    im_init = squeeze(thisObj.im4D(1,1,:,:));
+                otherwise
+                    error('Wrong Input')
+            end
+
+
+            f = figure;
+            ax1 = subplot(1,2,1);
+            ax2 = subplot(1,2,2);
+
+            imagesc(ax1,im_ave)
+            colormap(f,parula(65536))
+            axis(ax1,'equal','off')
+            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],'DrawingArea',[1,1,size(im_ave)-1]);
+            im2 = imagesc(ax2,im_init);    
+            axis(ax2,'equal','tight','off')
+            colorbar(ax2)
+
+
+            % Find default min, max
+            cmin = min(thisObj.im4D(:));
+            cmax = max(thisObj.im4D(:)); 
+
+            sl1 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
+            sl2 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
+
+            addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,thisObj.im4D,im2,ax2,searchDim));
+            % Listen to slider values and change B & C
+            addlistener(sl1, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
+            addlistener(sl2, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
+
+
+
+            function draw4D(evenData,im4D,im,ax,searchDim)
+
+                xy = round(evenData.CurrentPosition);
+                x = xy(1); y = xy(2);
+                switch searchDim
+                    case 'scan'
+                        sup_im = squeeze(im4D(:,:,y,x));
+                    case 'detector'
+                        sup_im = squeeze(im4D(y,x,:,:));
+                end
+                set(im,'CData',sup_im)
+                colorbar(ax)
+
+            end
+        end
+
         function obj = rebin4D( obj, varargin )
             % bin by binFactor along scan directions
             % binFactor must be a power of 2     
