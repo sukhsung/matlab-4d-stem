@@ -5,12 +5,16 @@ wdir = '/Users/noahschnitzer/Documents/projects/hlab/data/4d/';
 %comm
 fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
 dim = 128;
-e = empad( [wdir, fname], dim );
+%e = empad( [wdir, fname], dim );
+e = datacube(read_empad([wdir, fname],dim));
 vis4D(e.im4D)
 
 %% PACBED
 CBED_ave = e.pacbed;
 imageBC(CBED_ave);
+
+%%
+vis4D_reverse(e.im4D);
 
 %% masking peaks
 %50
