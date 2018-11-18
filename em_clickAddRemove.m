@@ -12,7 +12,10 @@ function [x_new, y_new] = em_clickAddRemove(x_old, y_old, im, bool_conjugate)
     end
     
     lft = 1;
-
+    figure
+    imagesc(im) 
+    axis equal off
+    colormap(parula(65536))
     title('Left Click to Add, Right Click to Remove, Hit Return to end' ) 
     hold on
     scatter(x_old,y_old,5,'ro')
@@ -49,8 +52,7 @@ function [x_new, y_new] = em_clickAddRemove(x_old, y_old, im, bool_conjugate)
         cla
         imagesc(im) 
         axis equal off
-        colormap gray
-
+        colormap(parula(65536))
         hold on
         scatter(x_new,y_new,5,'ro')
         

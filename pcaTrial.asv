@@ -1,27 +1,51 @@
+%% DataIO
+datadir = 'data/';
 
-wdir = 'data/';
+fname = '19_TaS2_400C_80keV_910kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
+%fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
+e = empad( [datadir,fname],64);
 
-%fname = '21_TaS2_25C_80keV_57kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_864step_x64_y64.raw';
-fname = '12_TaS2_250C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_864step_x64_y64.raw';
-e = empad( [wdir,fname],64);
-%e2 = empad( [wdir, fname], 64 );
-%vis4D(e.im4D)
+pacbed = e.pacbed;
+im4D = e.im4D;
 
-e = e.rebin4D(4);
+%% Hand pick the peaks of interest
+[x, y] = em_clickAddRemove([], [], pacbed, false);
+r_mask = 5;
+
+% Pre calculate meshgrid for mask generation
+
+[xx, yy] = meshgrid(1:nx, 1:ny);
+
+for pkInd = 1:length(x)
+    rr = 
+    pacbed
+    
+    
+end
+
+
+
+
+%%
+
+
+[ny, nx, nsx ,nsy] = size(im4D);
+
+%e = e.rebin4D(8);
 %clear e
 
-pca_input = zeros(e.nsx*e.nsy, e.nx*e.ny);
-for sx = 1: e.nsx
-    for sy = 1: e.nsy
-        ind = sub2ind([e.nsy,e.nsx],sy,sx);
+pca_input = zeros(nsx*nsy, nx*ny);
+for sx = 1: nsx
+    for sy = 1: nsy
+        ind = sub2ind([nsy,nsx],sy,sx);
         
-        pca_input(ind,:) = reshape(e.im4D(:,:,sx,sy),[1,e.nx*e.ny]);
+        pca_input(ind,:) = reshape(im4D(:,:,sx,sy),[1,nx*ny]);
         
         
     end
 end
 
-[coeff,score,latent] = pca(pca_input');
+[coeff,score,latent] = pca(pca_input','Algorithm','eig');
 
-score_im =reshape(score, [e.nx, e.ny, e.nsx, e.nsy]);
+score_im =reshape(score, [ny, nx, nsx, nsy]);
 vis4D(score_im)
