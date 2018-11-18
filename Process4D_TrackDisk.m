@@ -1,7 +1,8 @@
 %% Read Empad Data
 
 data_dir = 'data/';
-wdir = 'data/';
+%wdir = '/Users/noahschnitzer/Documents/projects/hlab/data/4d/';
+wdir = '/Volumes/gcc73/20181115_TaS2_Heating/';
 fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
 
 e = empad( [wdir, fname], 128 );

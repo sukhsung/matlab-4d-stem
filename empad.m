@@ -71,5 +71,23 @@ classdef empad
         function obj = applyDetector(obj, x0, y0, ri, ro)
             obj.im4D = obj.im4D.*obj.generateRadialMask(x0,y0,ri,ro);
         end
+        
+        function mask = generateRadialWedgeMask(obj, x0, y0, ri, ro, ti, to)
+            [xx, yy, ~, ~] = ndgrid(1:obj.nx, 1:obj.ny,1:obj.nsx,1:obj.nsy);
+            rr = (yy - y0).^2 + (xx - x0).^2;
+            tt = atan2d(yy-y0,xx-x0);
+            if ri == 0
+                %BF
+                mask = ( rr <= ro^2 );
+            else
+                %ADF
+                mask = ( rr <= ro^2 & rr >= ri^2);
+            end
+            mask = mask .* (tt <= to & tt >= ti);
+        end
+        function obj = applyWedgeDetector(obj, x0, y0, ri, ro, ti, to)
+            obj.im4D = obj.im4D.*obj.generateRadialWedgeMask(x0,y0,ri,ro,ti,to);
+        end
+
     end
 end
