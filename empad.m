@@ -27,31 +27,54 @@ classdef empad
             A = fread(fid, obj.nx*(obj.ny+2)*obj.nsx*obj.nsy,'long',0,'l');
             A = reshape(A,[obj.ny, obj.nx+2,obj.nsx,obj.nsy]);
 
-            obj.im4D = A(:,3:end,:,:);
+            obj.im4D = A(:,1:end-2,:,:);
             obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
         
-        function obj = rebin4D( obj, binFactor )
+        function obj = rebin4D( obj, varargin )
             % bin by binFactor along scan directions
-            % binFactor must be a power of 2
-            
+            % binFactor must be a power of 2     
+            % bin dimension along scan or detector
+            binFactor = varargin{1};    
             if rem(log(binFactor)/log(2),1) ~= 0
                 error( 'Bin Factor must be a power of 2' )
             end
-            
-
-            sxs = 1:binFactor:obj.nsx;
-            sys = 1:binFactor:obj.nsy;
-            
-            obj.nsx = obj.nsx/binFactor;
-            obj.nsy = obj.nsy/binFactor;
-            im4D_rebin = zeros(obj.nx,obj.ny,obj.nsx,obj.nsy);
-            for sx = 1:length(sxs)
-                for sy = 1:length(sys)
-                    im4D_rebin(:,:,sx,sy) = mean(mean(obj.im4D(:,:, sxs(sx):sxs(sx)+binFactor-1, sys(sy):sys(sy)+binFactor-1),4),3);
-                end
+            if nargin > 2
+                binDim = varargin{2};
+            else
+                binDim = 'scan';
             end
-            obj.im4D = im4D_rebin;
+            
+            switch binDim
+                case 'scan'
+                    sxs = 1:binFactor:obj.nsx;
+                    sys = 1:binFactor:obj.nsy;
+
+                    obj.nsx = obj.nsx/binFactor;
+                    obj.nsy = obj.nsy/binFactor;
+                    im4D_rebin = zeros(obj.nx,obj.ny,obj.nsx,obj.nsy);
+                    for sx = 1:length(sxs)
+                        for sy = 1:length(sys)
+                            im4D_rebin(:,:,sx,sy) = mean(mean(obj.im4D(:,:, sxs(sx):sxs(sx)+binFactor-1, sys(sy):sys(sy)+binFactor-1),4),3);
+                        end
+                    end
+                    obj.im4D = im4D_rebin;
+                case 'detector'
+                    xs = 1:binFactor:obj.nx;
+                    ys = 1:binFactor:obj.ny;
+
+                    obj.nx = obj.nx/binFactor;
+                    obj.ny = obj.ny/binFactor;
+                    im4D_rebin = zeros(obj.nx,obj.ny,obj.nsx,obj.nsy);
+                    for x = 1:length(xs)
+                        for y = 1:length(ys)
+                            im4D_rebin(x,y,:,:) = mean(mean(obj.im4D( xs(x):xs(x)+binFactor-1, ys(y):ys(y)+binFactor-1,:,:),2),1);
+                        end
+                    end
+                    obj.im4D = im4D_rebin;
+                otherwise
+                    error('Wrong bin dimension argument')
+            end
             obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
 

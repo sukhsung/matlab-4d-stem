@@ -7,7 +7,7 @@ function imageBC(im)
     % return figure, imagesc handle
     f = figure;
     h = imagesc(im);
-    colormap(parula(2^16))
+    colormap(parula(65535))
     % Find default min, max
     cmin = min(im(:));
     cmax = max(im(:)); 
