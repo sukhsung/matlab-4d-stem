@@ -175,7 +175,6 @@ classdef datacube
         end
         function obj = applyWedgeDetector(obj, x0, y0, ri, ro, ti, to)
             obj.im4D = obj.im4D.*obj.generateRadialWedgeMask(x0,y0,ri,ro,ti,to);
-        end
-
+        end    
     end
 end

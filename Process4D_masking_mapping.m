@@ -1,13 +1,15 @@
 %% data loading
 wdir = '/Users/noahschnitzer/Documents/projects/hlab/data/4d/';
+%high t
+fname = '13_TaS2_300C_80keV_80kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
 %twinned
 %fname = '50_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
 %comm
-fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
+%fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
 dim = 128;
 %e = empad( [wdir, fname], dim );
 e = datacube(read_empad([wdir, fname],dim));
-vis4D(e.im4D)
+e.vis4D('detector');
 
 %% PACBED
 CBED_ave = e.pacbed;
