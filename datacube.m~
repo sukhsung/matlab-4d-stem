@@ -73,11 +73,6 @@ classdef datacube
             sl1 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
             sl2 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
 
-             % filename box
-            txtbox = uicontrol('style','edit','position',[50 5 80 20],'String','File Name');
-            btSave = uicontrol('style','pushbutton','position',[140 5 30 20],'String','Save','CallBack', @(hObject,eventdata) saveIm(im2,sl1,sl2,txtbox));
-    
-    
             addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,thisObj.im4D,im2,ax2,searchDim));
             % Listen to slider values and change B & C
             addlistener(sl1, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
@@ -104,14 +99,14 @@ classdef datacube
                 cmin = get(sl1,'Value');
                 cmax = get(sl2,'Value');
                 
-                im2Save = im.CData;
-                im2Save( im2Save<cmin ) = cmin;
-                im2Save( im2Save>cmax ) = cmax;
+                image
+                im( im<cmin ) = cmin;
+                im( im>cmax ) = cmax;
 
-                im2Save = im2Save - cmin;
-                im2Save = uint16(65535 * im2Save / max(im2Save(:)));
+                im = im - cmin;
+                im = uint16(65535 * im / max(im(:)));
 
-                imwrite(im2Save, [txtbox.String,'.tif'])
+                imwrite(im, [txtbox.String,'.tif'])
             end
         end
 
