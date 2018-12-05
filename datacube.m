@@ -31,6 +31,13 @@ classdef datacube
             scan = squeeze(mean(mean(obj.im4D,1),2));
         end
         
+        function singleDiff = getSingleDiff(obj,x,y)
+            singleDiff  = squeeze(obj.im4D(:,:,x,y));
+        end
+        function singleIm = getSingleImage(obj,x,y)
+            singleIm  = squeeze(obj.im4D(y,x,:,:));
+        end
+        
         function vis4D(varargin)
             %im4D = varargin{1};
             thisObj = varargin{1};
