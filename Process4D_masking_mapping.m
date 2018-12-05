@@ -1,9 +1,10 @@
 %% data loading
-wdir = '/Users/noahschnitzer/Documents/projects/hlab/data/4d/';
+wdir = 'data/';
 %high t
-fname = '13_TaS2_300C_80keV_80kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
+%fname = '13_TaS2_300C_80keV_80kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
 %twinned
 %fname = '50_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
+fname = '07_TaS2_25C_80keV_450kx_CL1p5m_10um_0_2mrad_spot6_sidediff_50x_50y_100z_432step_x128_y128.raw';
 %comm
 %fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
 dim = 128;
