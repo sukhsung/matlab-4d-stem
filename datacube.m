@@ -159,7 +159,6 @@ classdef datacube
                 otherwise
                     error('Wrong bin dimension argument')
             end
-            obj.pacbed = squeeze( mean( mean( obj.im4D, 3), 4) );
         end
 
         function mask = generateRadialMask( obj, x0, y0, ri, ro )
