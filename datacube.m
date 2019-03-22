@@ -65,9 +65,10 @@ classdef datacube
             ax2 = subplot(1,2,2);
 
             imagesc(ax1,im_ave)
-            colormap(f,parula(65536))
+            %colormap(f,parula(65536))
+            colormap(f,gray(65536))
             axis(ax1,'equal','off')
-            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],'DrawingArea',[1,1,size(im_ave)-1]);
+            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],'DrawingArea',[1,1,size(im_ave,2)-1,size(im_ave,1)-1]);
             im2 = imagesc(ax2,im_init);    
             axis(ax2,'equal','tight','off')
             colorbar(ax2)
@@ -77,18 +78,23 @@ classdef datacube
             cmin = min(thisObj.im4D(:));
             cmax = max(thisObj.im4D(:)); 
 
-            sl1 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
-            sl2 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
+            sl11 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
+            sl12 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
+
+            sl21 = uicontrol(f,'Units','normalized','style','slider','position',[.9 .02 .05 .5],'min', cmin, 'max', cmax,'Value', cmin);
+            sl22 = uicontrol(f,'Units','normalized','style','slider','position',[.95 .02 .05 .5],'min', cmin, 'max', cmax,'Value', cmax);
 
              % filename box
             txtbox = uicontrol('style','edit','position',[50 5 80 20],'String','File Name');
-            btSave = uicontrol('style','pushbutton','position',[140 5 30 20],'String','Save','CallBack', @(hObject,eventdata) saveIm(im2,sl1,sl2,txtbox));
-    
+            btSave = uicontrol('style','pushbutton','position',[140 5 30 20],'String','Save','CallBack', @(hObject,eventdata) saveIm(im2,sl21,sl22,txtbox));
+            %cboxLog = uicontrol('style','checkbox','position',[],'String','Log data', 'Callback', @(hObject,eventdata) );
     
             addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,thisObj.im4D,im2,ax2,searchDim));
             % Listen to slider values and change B & C
-            addlistener(sl1, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
-            addlistener(sl2, 'Value', 'PostSet',@(hObject,eventdata) caxis([get(sl1,'Value'), get(sl2,'Value')]));
+            addlistener(sl11, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax1,[get(sl11,'Value'), get(sl12,'Value')]));
+            addlistener(sl12, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax1,[get(sl11,'Value'), get(sl12,'Value')]));
+            addlistener(sl21, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax2,[get(sl21,'Value'), get(sl22,'Value')]));
+            addlistener(sl22, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax2,[get(sl21,'Value'), get(sl22,'Value')]));
 
 
 
@@ -200,6 +206,42 @@ classdef datacube
         end
         function obj = applyWedgeDetector(obj, x0, y0, ri, ro, ti, to)
             obj.im4D = obj.im4D.*obj.generateRadialWedgeMask(x0,y0,ri,ro,ti,to);
-        end    
+        end
+        % defines a mask which selects a hexagonal lattice of points with
+        % given origin (x0, y0), parameter a, rotation angle theta, size n
+        function [mask,pos] = generateHexagonalLatticeMask(obj,x0,y0,a,theta,n)
+            %[xx, yy, ~, ~] = ndgrid(1:obj.nx, 1:obj.ny,1:obj.nsx,1:obj.nsy);
+            imsz = size(obj.im4D);
+            phi = -30*pi/180;
+            theta = theta*pi/180;
+            a1 = [cos(phi+theta) -sin(phi+theta); sin(phi+theta) cos(phi+theta)]*[1;0];
+            a2 = [cos(theta) -sin(theta); sin(theta) cos(theta)]*[0;1];
+            grid = linspace(-n,n,2*n+1);
+            [h, k] = meshgrid(grid,grid);
+            h = h(:);
+            k = k(:);
+            pos_x = a1*h';
+            pos_y = a2*k';
+            pos = pos_x+pos_y;
+            pos = pos*a;
+            pos(1,:) = pos(1,:)+x0;
+            pos(2,:) = pos(2,:)+y0;
+            pos = round(pos);
+            
+            pos(:,pos(1,:) <= 0) = [];
+            pos(:,pos(2,:) <= 0) = [];
+            pos(:,pos(1,:) > imsz(1)) = [];
+            pos(:,pos(2,:) > imsz(2)) = [];
+            
+            mask = zeros(size(obj.im4D));
+            %mask(pos(1,:),pos(2,:),:,:) = 1;
+            for it = 1:size(pos,2)
+               mask(pos(1,it),pos(2,it),:,:) = 1; 
+            end
+            %figure; scatter(pos(1,:),pos(2,:))
+            %axis equal;
+            
+           
+        end
     end
 end
