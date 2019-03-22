@@ -4,13 +4,56 @@ wdir = 'data/';
 %fname = '13_TaS2_300C_80keV_80kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_100z_432step_x128_y128.raw';
 %twinned
 %fname = '50_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
-fname = '07_TaS2_25C_80keV_450kx_CL1p5m_10um_0_2mrad_spot6_sidediff_50x_50y_100z_432step_x128_y128.raw';
+%fname = '07_TaS2_25C_80keV_450kx_CL1p5m_10um_0_2mrad_spot6_sidediff_50x_50y_100z_432step_x128_y128.raw';
 %comm
-%fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
+fname = '52_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
 dim = 128;
 %e = empad( [wdir, fname], dim );
 e = datacube(read_empad([wdir, fname],dim));
 e.vis4D('detector');
+
+%%
+t1s1 = [31, 49; 49, 48; 40, 63];
+t1s2 = [40, 44; 49, 58; 31, 59];
+t2s1 = [30, 54; 44, 45; 46, 62];
+t2s2 = [34, 45; 50, 53; 36, 63];
+
+ae = e;
+ae.im4D(:,:,:,:) = 0;
+%sets = t2s1;
+sets = cat(3,t1s1, t1s2);
+twins(:,:,:,1) = sets;
+sets = cat(3,t2s1, t2s2);
+twins(:,:,:,2) = sets;
+scan_stack = zeros(128,128,3);
+for twin = 1:2
+    ae.im4D(:,:,:,:) = 0;
+    sets= twins(:,:,:,twin);
+    for set = 1:size(sets,3)
+        for peak = 1:size(sets,1)
+           ae.im4D(sets(peak,2,set), sets(peak,1,set),:,:) = e.im4D(sets(peak,2,set), sets(peak,1,set),:,:);
+           
+           
+           ae.im4D(sets(peak,2,set)-1, sets(peak,1,set)-1,:,:) = e.im4D(sets(peak,2,set)-1, sets(peak,1,set)-1,:,:);
+           ae.im4D(sets(peak,2,set)-1, sets(peak,1,set),:,:) = e.im4D(sets(peak,2,set)-1, sets(peak,1,set),:,:);
+           ae.im4D(sets(peak,2,set), sets(peak,1,set)-1,:,:) = e.im4D(sets(peak,2,set), sets(peak,1,set)-1,:,:);
+           ae.im4D(sets(peak,2,set)+1, sets(peak,1,set)-1,:,:) = e.im4D(sets(peak,2,set)+1, sets(peak,1,set)-1,:,:);
+           ae.im4D(sets(peak,2,set)-1, sets(peak,1,set)+1,:,:) = e.im4D(sets(peak,2,set)-1, sets(peak,1,set)+1,:,:);
+           ae.im4D(sets(peak,2,set)+1, sets(peak,1,set),:,:) = e.im4D(sets(peak,2,set)+1, sets(peak,1,set),:,:);
+           ae.im4D(sets(peak,2,set), sets(peak,1,set)+1,:,:) = e.im4D(sets(peak,2,set), sets(peak,1,set)+1,:,:);
+           ae.im4D(sets(peak,2,set)+1, sets(peak,1,set)+1,:,:) = e.im4D(sets(peak,2,set)+1, sets(peak,1,set)+1,:,:);
+        end
+    end
+    scan1 = ae.getScan();
+    scan1 = scan1 - min(scan1(:));
+    scan1 = scan1./max(scan1(:));
+
+    scan_stack(:,:,twin) = scan1;
+    ae.vis4D('detector');
+end
+%imageBC(scan);
+figure; image(scan_stack)
+imwrite(scan_stack,'rgb.tif')
 
 %% PACBED
 CBED_ave = e.pacbed;
