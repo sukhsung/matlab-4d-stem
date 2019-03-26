@@ -17,10 +17,10 @@ classdef datacube
             % sukhsung@umich.edu
             % Nov. 18 2018 refactored by Noah Schnitzer from empad.m
             input_size = size(im4D);
-            obj.nsx = input_size(3);
-            obj.nsy = input_size(4);
-            obj.nx = input_size(1);
-            obj.ny = input_size(2);
+            obj.nx = input_size(2);
+            obj.ny = input_size(1);
+            obj.nsy = input_size(3);
+            obj.nsx = input_size(4);
             obj.im4D = im4D;
         end
         
@@ -32,21 +32,20 @@ classdef datacube
         end
         
         function singleDiff = getSingleDiff(obj,x,y)
-            singleDiff  = squeeze(obj.im4D(:,:,x,y));
+            singleDiff  = squeeze(obj.im4D(:,:,y,x));
         end
         function singleIm = getSingleImage(obj,x,y)
             singleIm  = squeeze(obj.im4D(y,x,:,:));
         end
         
         function vis4D(varargin)
-            %im4D = varargin{1};
             thisObj = varargin{1};
+            
             if nargin > 1
                 searchDim = varargin{2};
             else
                 searchDim = 'scan';
             end
-
 
             switch searchDim
                 case 'scan'
@@ -64,39 +63,60 @@ classdef datacube
             ax1 = subplot(1,2,1);
             ax2 = subplot(1,2,2);
 
-            imagesc(ax1,im_ave)
-            %colormap(f,parula(65536))
+            im1 = imagesc(ax1,im_ave);           
+            im2 = imagesc(ax2,im_init);   
             colormap(f,gray(65536))
-            axis(ax1,'equal','off')
-            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],'DrawingArea',[1,1,size(im_ave,2)-1,size(im_ave,1)-1]);
-            im2 = imagesc(ax2,im_init);    
+            axis(ax1,'equal','off') 
             axis(ax2,'equal','tight','off')
             colorbar(ax2)
 
-
             % Find default min, max
-            cmin = min(thisObj.im4D(:));
-            cmax = max(thisObj.im4D(:)); 
+            cmin1 = min(thisObj.im4D(:));
+            cmax1 = max(thisObj.im4D(:)); 
 
-            sl11 = uicontrol(f,'style','slider','position',[10 60 20 300],'min', cmin, 'max', cmax,'Value', cmin);
-            sl12 = uicontrol(f,'style','slider','position',[35 60 20 300],'min', cmin, 'max', cmax,'Value', cmax);
-
-            sl21 = uicontrol(f,'Units','normalized','style','slider','position',[.9 .02 .05 .5],'min', cmin, 'max', cmax,'Value', cmin);
-            sl22 = uicontrol(f,'Units','normalized','style','slider','position',[.95 .02 .05 .5],'min', cmin, 'max', cmax,'Value', cmax);
-
+            % UI setup
+            
+            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],...
+                'DrawingArea',[1,1,size(im_ave,2)-1,size(im_ave,1)-1]);
+            
+            p1 = uipanel(f,'Position',[0,0,0.1,1]);
+            p2 = uipanel(f,'Position',[0.9,0,0.1,1]);
+            p3 = uipanel(f,'Position',[0.1,0,0.8,0.05]);
+    
+            sl1_min = uicontrol(p1,'style','slider',...
+                'Units','normalized','position',[0,0,0.5,1],...
+                'min', cmin1, 'max', cmax1,'Value', min(im_ave(:)));
+            sl1_max = uicontrol(p1,'style','slider',...
+                'Units','normalized','position',[0.5,0,0.5,1],...
+                'min', cmin1, 'max', cmax1,'Value', max(im_ave(:)));
+            sl2_min = uicontrol(p2,'style','slider',...
+                'Units','normalized','position',[0,0,0.5,1],...
+                'min', cmin1, 'max', cmax1,'Value', min(im_init(:)));
+            sl2_max = uicontrol(p2,'style','slider',...
+                'Units','normalized','position',[0.5,0,0.5,1],...
+                'min', cmin1, 'max', cmax1,'Value', max(im_init(:)));
+            
              % filename box
-            txtbox = uicontrol('style','edit','position',[50 5 80 20],'String','File Name');
-            btSave = uicontrol('style','pushbutton','position',[140 5 30 20],'String','Save','CallBack', @(hObject,eventdata) saveIm(im2,sl21,sl22,txtbox));
+            txtbox1 = uicontrol(p3,'style','edit',...
+                'Units','Normalized','position',[0 0 0.2 1],...
+                'String','File Name');
+            txtbox2 = uicontrol(p3,'style','edit',...
+                'Units','Normalized','position',[0.7 0 0.2 1],...
+                'String','File Name');
+            bt1 =    uicontrol(p3,'style','pushbutton',...
+                'Units','Normalized','position',[0.2 0 0.1 1],...
+                'String','Save',...
+                'CallBack', @(src,evnt) saveIm(im1,sl1_min,sl1_max,txtbox1));
+            bt2 =    uicontrol(p3,'style','pushbutton',...
+                'Units','Normalized','position',[0.9 0 0.1 1],...
+                'String','Save',...
+                'CallBack', @(src,evnt) saveIm(im2,sl2_min,sl2_max,txtbox2));
             %cboxLog = uicontrol('style','checkbox','position',[],'String','Log data', 'Callback', @(hObject,eventdata) );
     
             addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,thisObj.im4D,im2,ax2,searchDim));
             % Listen to slider values and change B & C
-            addlistener(sl11, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax1,[get(sl11,'Value'), get(sl12,'Value')]));
-            addlistener(sl12, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax1,[get(sl11,'Value'), get(sl12,'Value')]));
-            addlistener(sl21, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax2,[get(sl21,'Value'), get(sl22,'Value')]));
-            addlistener(sl22, 'Value', 'PostSet',@(hObject,eventdata) caxis(ax2,[get(sl21,'Value'), get(sl22,'Value')]));
-
-
+            addlistener([sl1_min,sl1_max], 'Value', 'PostSet',@(hObject,eventdata) setContrast(ax1,sl1_min,sl1_max));
+            addlistener([sl2_min,sl2_max], 'Value', 'PostSet',@(hObject,eventdata) setContrast(ax2,sl2_min,sl2_max));
 
             function draw4D(evenData,im4D,im,ax,searchDim)
 
@@ -113,9 +133,9 @@ classdef datacube
 
             end
             
-            function saveIm(im,sl1,sl2,txtbox)
-                cmin = get(sl1,'Value');
-                cmax = get(sl2,'Value');
+            function saveIm(im,sl_min,sl_max,txtbox)
+                cmin = sl_min.Value;
+                cmax = sl_max.Value;
                 
                 im2Save = im.CData;
                 im2Save( im2Save<cmin ) = cmin;
@@ -125,6 +145,10 @@ classdef datacube
                 im2Save = uint16(65535 * im2Save / max(im2Save(:)));
 
                 imwrite(im2Save, [txtbox.String,'.tif'])
+            end
+            
+            function setContrast(ax,sl_min,sl_max)
+                caxis(ax,[sl_min.Value, sl_max.Value])
             end
         end
 
@@ -152,7 +176,7 @@ classdef datacube
                     im4D_rebin = zeros(obj.nx,obj.ny,obj.nsx,obj.nsy);
                     for sx = 1:length(sxs)
                         for sy = 1:length(sys)
-                            im4D_rebin(:,:,sx,sy) = mean(mean(obj.im4D(:,:, sxs(sx):sxs(sx)+binFactor-1, sys(sy):sys(sy)+binFactor-1),4),3);
+                            im4D_rebin(:,:,sy,sx) = mean(mean(obj.im4D(:,:, sys(sy):sys(sy)+binFactor-1, sxs(sx):sxs(sx)+binFactor-1),4),3);
                         end
                     end
                     obj.im4D = im4D_rebin;
@@ -165,10 +189,43 @@ classdef datacube
                     im4D_rebin = zeros(obj.nx,obj.ny,obj.nsx,obj.nsy);
                     for x = 1:length(xs)
                         for y = 1:length(ys)
-                            im4D_rebin(x,y,:,:) = mean(mean(obj.im4D( xs(x):xs(x)+binFactor-1, ys(y):ys(y)+binFactor-1,:,:),2),1);
+                            im4D_rebin(y,x,:,:) = mean(mean(obj.im4D( ys(y):ys(y)+binFactor-1,xs(x):xs(x)+binFactor-1, :,:),2),1);
                         end
                     end
                     obj.im4D = im4D_rebin;
+                otherwise
+                    error('Wrong bin dimension argument')
+            end
+        end
+        
+        function obj = crop4D( obj, cropInd, cropDim )
+            % bin by binFactor along scan directions
+            % cropInd = [xmin xmax ymin ymax];
+            
+            xmin = cropInd(1);
+            xmax = cropInd(2);
+            ymin = cropInd(3);
+            ymax = cropInd(4);
+            
+            switch cropDim
+                case 'scan'
+                    sxs = xmin:1:xmax;
+                    sys = ymin:1:ymax;
+
+                    obj.nsx = xmax-xmin+1;
+                    obj.nsy = ymax-ymin+1;
+                    
+                    obj.im4D = obj.im4D(sys,sxs,:,:);
+                    
+                case 'detector'            
+                    xs = xmin:1:xmax;
+                    ys = ymin:1:ymax;
+                    
+                    obj.nx = xmax-xmin+1;
+                    obj.ny = ymax-ymin+1;
+                    
+                    obj.im4D = obj.im4D(ys,xs,:,:);
+                    
                 otherwise
                     error('Wrong bin dimension argument')
             end
@@ -243,5 +300,45 @@ classdef datacube
             
            
         end
+        
+        function obj = removeOutlier(obj, sgMul)
+            % remove outlier within detector
+            % outlier outside sg value are thresholded
+            for sy = 1:obj.nsx
+                for sx = 1:obj.nsx
+                    curIm = obj.im4D(:,:,sy,sx);
+                    av = mean(curIm(:));
+                    st = std(curIm(:));
+                    lb = av - sgMul*st;
+                    ub = av + sgMul*st;
+                    curIm( curIm < lb ) = lb;
+                    curIm( curIm > ub ) = ub;
+                    
+                    obj.im4D(:,:,sy,sx) = curIm;
+                end
+            end
+        end
+        
+        function obj = translateDetector(obj,dx,dy)
+            
+            im4D_K = fft2(obj.im4D);
+
+            kx1 = mod( 1/2 + (0:(obj.nx-1))/obj.nx , 1 ) - 1/2;
+            ky1 = mod( 1/2 + (0:(obj.ny-1))/obj.ny , 1 ) - 1/2;
+
+            [KX,KY] = meshgrid(kx1,ky1);
+
+            pha = exp( -2i*pi*(KX*dx + KY*dy) );
+
+            for sy = 1:obj.nsy
+                for sx = 1:obj.nsx
+                    im4D_K(:,:,sy,sx) = im4D_K(:,:,sy,sx) .* pha;
+                end
+            end
+
+            obj.im4D = abs(ifft2(im4D_K));
+        end
+        
+        
     end
 end
