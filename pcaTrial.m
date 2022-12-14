@@ -1,9 +1,11 @@
-%% DataIO
-datadir = 'data/20181116_TaS2_Heating/ROI1_Switching/';
+% IO
+%wdir = '/Volumes/Noah/20181119_TaS2_Heating_EMPAD_PARADIM/EMPAD/20181115_TaS2_Heating/';
+%d2
+datadir = '/Users/sung/Desktop/20181116_TaS2_Heating/';
 
-fname = '50_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
-%fname = 'tas2microprobe_06_1150kx_cl1p5m_ap50_0p44mrad_spot8_mono60_80kV_93K_50x_50y_100z_432step_x128_y128.raw';
-
+%wdir= '/Users/noah/Desktop/data_from_RH/20161122_EM_2016_11_22_TaS2hovden/';
+fname = '08_TaS2_250C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_26z_113step_x128_y128.raw';
+dim = 128;
 
 e = datacube( read_empad([datadir,fname],128));
 e.vis4D

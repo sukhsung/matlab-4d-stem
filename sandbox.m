@@ -1,13 +1,13 @@
 %d1
 %wdir = '/Volumes/Noah/20181119_TaS2_Heating_EMPAD_PARADIM/EMPAD/20181115_TaS2_Heating/';
 %d2
-wdir = '/Volumes/Noah/20181119_TaS2_Heating_EMPAD_PARADIM/EMPAD/20181116_TaS2_Heating/';
-sub = 'ROI1_Switching/';
+wdir = '/Users/sung/Desktop/20181116_TaS2_Heating/';
+sub = '';
 %calibration
 %wdir = '/Volumes/Noah/20181119_TaS2_Heating_EMPAD_PARADIM/calibration/';
 %rh
 %wdir= '/Users/noah/Desktop/data_from_RH/20161122_EM_2016_11_22_TaS2hovden/';
-fname = '50_25C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_sideDiff_q8_50x_50y_100z_432step_x128_y128.raw';
+fname = '08_TaS2_250C_80keV_450kx_CL1p9m_10um_0_2mrad_spot6_shiftdiff_50x_50y_26z_113step_x128_y128.raw';
 dim = 128;
 e = datacube(read_empad([wdir sub fname],dim));
 %%
@@ -26,7 +26,7 @@ masked_e.im4D = masked_e.im4D - e.im4D .* mask;
 imageBC(masked_e.getScan());
 %%
 
-e.vis4D('detector');
+e.vis4D('scan');
 
 %%
 imwrite(normalizer(e.getPacbed()),'pacbed.tif');

@@ -38,117 +38,237 @@ classdef datacube
             singleIm  = squeeze(obj.im4D(y,x,:,:));
         end
         
-        function vis4D(varargin)
-            thisObj = varargin{1};
-            
-            if nargin > 1
-                searchDim = varargin{2};
-            else
-                searchDim = 'scan';
-            end
+        function vis4D(obj)
 
-            switch searchDim
-                case 'scan'
-                    im_ave = squeeze( mean( mean( thisObj.im4D, 1), 2) );
-                    im_init = squeeze(thisObj.im4D(:,:,1,1));
-                case 'detector'
-                    im_ave = squeeze( mean( mean( thisObj.im4D, 3), 4) );            
-                    im_init = squeeze(thisObj.im4D(1,1,:,:));
-                otherwise
-                    error('Wrong Input')
-            end
-
-
-            f = figure;
-            ax1 = subplot(1,2,1);
-            ax2 = subplot(1,2,2);
-
-            im1 = imagesc(ax1,im_ave);           
-            im2 = imagesc(ax2,im_init);   
-            colormap(f,gray(65536))
-            axis(ax1,'equal','off') 
-            axis(ax2,'equal','tight','off')
-            colorbar(ax2)
-
+            im_init_r = squeeze( mean( obj.im4D, [1, 2]) );
+            im_init_k = squeeze( obj.im4D(:,:,1,1) );%mean( im4D, [1, 2]) );
+            %[nx, ny, nsx, nsy] = size( obj.im4D );
+        
             % Find default min, max
-            cmin1 = min(thisObj.im4D(:));
-            cmax1 = max(thisObj.im4D(:)); 
+            cmin_r = min(im_init_r(:));
+            cmax_r = max(im_init_r(:)); 
+            cmin_k = min(im_init_k(:));
+            cmax_k = max(im_init_k(:)); 
+        
+            cmin = min(obj.im4D(:));
+            cmax = max(obj.im4D(:));
+        
+            nedge = 256;
+            edges_r = linspace( cmin_r, cmax_r, nedge);
+            edges_k = linspace( cmin_k, cmax_k, nedge);
+            bins_r  = histcounts( im_init_r, edges_r );
+            bins_k  = histcounts( im_init_k, edges_k );
+        
+        
+        
+            f = figure("Name", "4D Viewer by SSH", "Position", [100 100 950 620]);
+            ax(1) = axes( f, "Units", "Points", "Position", [ 50 50 400 400], "XLimitMethod", "Tight");
+            ax(2) = axes( f, "Units", "Points", "Position", [500 50 400 400], "XLimitMethod", "Tight");        
+            ax(3) = axes( f, "Units", "Points", "Position", [ 50  500 400 100], "XLimitMethod", "Tight");
+            ax(4) = axes( f, "Units", "Points", "Position", [ 500 500 400 100], "XLimitMethod", "Tight");
+            hold( ax(3:4), 'on')
+        
+            im(1) = imagesc(ax(1), im_init_r);
+            im(2) = imagesc(ax(2), im_init_k);
+            im(3) = plot( ax(3), edges_r(1:(nedge-1)), bins_r);
+            im(4) = plot( ax(4), edges_k(1:(nedge-1)), bins_k);
 
-            % UI setup
-            
-            h1 = drawpoint(ax1,'Deletable',false,'Position',[1 1],...
-                'DrawingArea',[1,1,size(im_ave,2)-1,size(im_ave,1)-1]);
-            
-            p1 = uipanel(f,'Position',[0,0,0.1,1]);
-            p2 = uipanel(f,'Position',[0.9,0,0.1,1]);
-            p3 = uipanel(f,'Position',[0.1,0,0.8,0.05]);
-    
-            sl1_min = uicontrol(p1,'style','slider',...
-                'Units','normalized','position',[0,0,0.5,1],...
-                'min', cmin1, 'max', cmax1,'Value', min(im_ave(:)));
-            sl1_max = uicontrol(p1,'style','slider',...
-                'Units','normalized','position',[0.5,0,0.5,1],...
-                'min', cmin1, 'max', cmax1,'Value', max(im_ave(:)));
-            sl2_min = uicontrol(p2,'style','slider',...
-                'Units','normalized','position',[0,0,0.5,1],...
-                'min', cmin1, 'max', cmax1,'Value', min(im_init(:)));
-            sl2_max = uicontrol(p2,'style','slider',...
-                'Units','normalized','position',[0.5,0,0.5,1],...
-                'min', cmin1, 'max', cmax1,'Value', max(im_init(:)));
-            
-             % filename box
-            txtbox1 = uicontrol(p3,'style','edit',...
-                'Units','Normalized','position',[0 0 0.2 1],...
-                'String','File Name');
-            txtbox2 = uicontrol(p3,'style','edit',...
-                'Units','Normalized','position',[0.7 0 0.2 1],...
-                'String','File Name');
-            bt1 =    uicontrol(p3,'style','pushbutton',...
-                'Units','Normalized','position',[0.2 0 0.1 1],...
-                'String','Save',...
-                'CallBack', @(src,evnt) saveIm(im1,sl1_min,sl1_max,txtbox1));
-            bt2 =    uicontrol(p3,'style','pushbutton',...
-                'Units','Normalized','position',[0.9 0 0.1 1],...
-                'String','Save',...
-                'CallBack', @(src,evnt) saveIm(im2,sl2_min,sl2_max,txtbox2));
-            %cboxLog = uicontrol('style','checkbox','position',[],'String','Log data', 'Callback', @(hObject,eventdata) );
-    
-            addlistener(h1,'MovingROI',@(src,evnt) draw4D(evnt,thisObj.im4D,im2,ax2,searchDim));
-            % Listen to slider values and change B & C
-            addlistener([sl1_min,sl1_max], 'Value', 'PostSet',@(hObject,eventdata) setContrast(ax1,sl1_min,sl1_max));
-            addlistener([sl2_min,sl2_max], 'Value', 'PostSet',@(hObject,eventdata) setContrast(ax2,sl2_min,sl2_max));
+            ax(3).XLim = [ cmin_r, cmax_r ];
+            ax(3).YLim = [ 0, max(bins_r) ];
 
-            function draw4D(evenData,im4D,im,ax,searchDim)
-
-                xy = round(evenData.CurrentPosition);
-                x = xy(1); y = xy(2);
-                switch searchDim
-                    case 'scan'
-                        sup_im = squeeze(im4D(:,:,y,x));
-                    case 'detector'
-                        sup_im = squeeze(im4D(y,x,:,:));
+            ax(4).XLim = [ cmin_k, cmax_k ];        
+            ax(4).YLim = [ 0, max(bins_k) ];
+        
+            cr_r(1) = plot( ax(3), cmin_r*[1 1], max(bins_r)*[0 1], 'r-');
+            cr_r(2) = plot( ax(3), cmax_r*[1 1], max(bins_r)*[0 1], 'r-');
+            cr_k(1) = plot( ax(4), cmin_k*[1 1], max(bins_k)*[0 1], 'r-');
+            cr_k(2) = plot( ax(4), cmax_k*[1 1], max(bins_k)*[0 1], 'r-');
+        
+            axis( ax(1:2), 'equal','off')
+            colormap( ax(1), gray(65535) )
+            colormap( ax(2), gray(65535) )
+        
+            % Real Space Selector
+            selector_r = uicontrol(f, "Style", "popupmenu", ...
+                "String", ["Point", "Rectangle", "Full"],...
+                "Position",[50 0 100 40] );
+        
+            % UI setup    
+            roi_r(1) = drawpoint(ax(1),'Deletable',false,'Position',[1 1],...
+                'DrawingArea',[1, 1, obj.nsy-1, obj.nsx-1],'Visible','on');
+            roi_r(2) = drawrectangle(ax(1),'Deletable',false,'Position',[1, 1, round(obj.nsx/5), round(obj.nsx/5)],...
+                'DrawingArea',[1, 1, obj.nsy-1, obj.nsx-1],'Visible','off');
+            roi_r(3) = drawrectangle(ax(1),'Deletable',false,'Position',[1, 1, obj.nsy-1, obj.nsx-1],...
+                'DrawingArea',[1, 1, obj.nsy-1, obj.nsx-1],'Visible','off','InteractionsAllowed','none',...
+                'FaceAlpha',0);
+        
+            addlistener( roi_r(1),'MovingROI',@(src,evnt) roi_r_1_moved( roi_r,obj.im4D,im, ax) );
+            addlistener( roi_r(2),'MovingROI',@(src,evnt) roi_r_2_moved( roi_r,obj.im4D,im, ax) );
+            addlistener( roi_r(3),'MovingROI',@(src,evnt) roi_r_3_moved( roi_r,obj.im4D,im, ax) );
+            selector_r.Callback = @(src,evt) select_roi_r(src, roi_r, obj.im4D, im);
+        
+            % K Space Selector
+            selector_k = uicontrol(f, "Style", "popupmenu", ...
+                "String", ["Point", "Rectangle", "Full"],...
+                "Position",[500 0 100 40] );
+            selector_k.Value = 3;
+        
+            % UI setup    
+            roi_k(1) = drawpoint(ax(2),'Deletable',false,'Position',[1 1],...
+                'DrawingArea',[1, 1, obj.ny-1, obj.nx-1],'Visible','off');
+            roi_k(2) = drawrectangle(ax(2),'Deletable',false,'Position',[1, 1, round(obj.nx/5), round(obj.nx/5)],...
+                'DrawingArea',[1, 1, obj.ny-1, obj.nx-1],'Visible','off');
+            roi_k(3) = drawrectangle(ax(2),'Deletable',false,'Position',[1, 1, obj.ny-1, obj.nx-1],...
+                'DrawingArea',[1, 1, obj.ny-1, obj.nx-1],'Visible','on','InteractionsAllowed','none',...
+                'FaceAlpha',0);
+        
+        
+            addlistener( roi_k(1),'MovingROI',@(src,evnt) roi_k_1_moved( roi_k,obj.im4D,im, ax) );
+            addlistener( roi_k(2),'MovingROI',@(src,evnt) roi_k_2_moved( roi_k,obj.im4D,im, ax) );
+            addlistener( roi_k(3),'MovingROI',@(src,evnt) roi_k_3_moved( roi_k,obj.im4D,im, ax) );
+            selector_k.Callback = @(src,evt) select_roi_k(src, roi_k, obj.im4D, im, ax);
+        %     roi_ht = drawrectangle( ax(3), "Position", [cmin_r, 0, cmax_r-cmin_r, max(ht(1).Values)],...
+        %         "Deletable", false, "InteractionsAllowed", "all");
+        
+            sl_r(1) = uicontrol(f,'style','slider',...
+                'Units','points','position',[10, 50, 10, 400],...
+                'min', cmin_r, 'max', cmax_r,'Value', min( im_init_r(:)) );
+            sl_r(2) = uicontrol(f,'style','slider',...
+                'Units','points','position',[30, 50, 10, 400],...
+                'min', cmin_r, 'max', cmax_r,'Value', max( im_init_r(:)) );
+            sl_k(1) = uicontrol(f,'style','slider',...
+                'Units','points','position',[915, 50,10, 400],...
+                'min', cmin_k, 'max', cmax_k,'Value', min( im_init_k(:)) );
+            sl_k(2) = uicontrol(f,'style','slider',...
+                'Units','points','position',[935, 50,10, 400],...
+                'min', cmin_k, 'max', cmax_k,'Value', max( im_init_k(:)) );
+        %     
+        %     %cboxLog = uicontrol('style','checkbox','position',[],'String','Log data', 'Callback', @(hObject,eventdata) );
+        % 
+        %     % Listen to slider values and change B & C
+            addlistener(sl_r, 'Value', 'PostSet',@(hObject,eventdata) set_contrast(ax(1),sl_r, cr_r));
+            addlistener(sl_k, 'Value', 'PostSet',@(hObject,eventdata) set_contrast(ax(2),sl_k, cr_k));
+        
+        
+            function set_contrast( ax, sl, cr )
+                cmin = sl(1).Value;
+                cmax = sl(2).Value;
+            
+                if cmin > cmax
+                    cmin = cmax-eps;
+                    sl(1).Value = cmin;
                 end
-                set(im,'CData',sup_im)
-                colorbar(ax)
-
+            
+                ax.CLim = [cmin, cmax];
+                cr(1).XData = [cmin, cmin];
+                cr(2).XData = [cmax, cmax];
             end
             
-            function saveIm(im,sl_min,sl_max,txtbox)
-                cmin = sl_min.Value;
-                cmax = sl_max.Value;
+            function select_roi_r( selector_r, roi_r, im4D, im, ax )
+                for i = 1:3
+                    roi_r(i).Visible = 0;
+                end
+                roi_r(selector_r.Value).Visible = 1;
+            
+                if roi_r(1).Visible
+                    roi_r_1_moved( roi_r, im4D, im, ax );
+                elseif roi_r(2).Visible
+                    roi_r_2_moved( roi_r, im4D, im, ax );
+                elseif roi_r(3).Visible
+                    roi_r_3_moved( roi_r, im4D, im, ax );
+                end
+            end
+            
+            function select_roi_k( selector_k, roi_k, im4D, im, ax )
+                for i = 1:3
+                    roi_k(i).Visible = 0;
+                end
+                roi_k(selector_k.Value).Visible = 1;
+            
+                if roi_k(1).Visible
+                    roi_k_1_moved( roi_k, im4D, im, ax );
+                elseif roi_k(2).Visible
+                    roi_k_2_moved( roi_k, im4D, im, ax );
+                elseif roi_k(3).Visible
+                    roi_k_3_moved( roi_k, im4D, im, ax);
+                end
+            end
+            
+            function roi_r_1_moved( roi_r, im4D, im, ax )
+                %xy = round(eventData.CurrentPosition);
+                xy = round( roi_r(1).Position);
+                x = xy(1); y = xy(2);
+                imData = squeeze(im4D(:,:,y,x));
                 
-                im2Save = im.CData;
-                im2Save( im2Save<cmin ) = cmin;
-                im2Save( im2Save>cmax ) = cmax;
-
-                im2Save = im2Save - cmin;
-                im2Save = uint16(65535 * im2Save / max(im2Save(:)));
-
-                imwrite(im2Save, [txtbox.String,'.tif'])
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(2).CData = imData;
+                im(4).XData = edges(1:end-1);
+                im(4).YData = histcounts( imData, edges );
+                ax(4).XLim = [cmin cmax];
+            end
+            function roi_r_2_moved( roi_r, im4D, im, ax )
+                xywh = round(roi_r(2).Position);
+                x = xywh(1); y = xywh(2); w = xywh(3); h = xywh(4);
+                imData = squeeze( mean(im4D(:,:,y:(y+h),x:(x+w)),[3 4]) );
+            
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(2).CData = imData;
+                im(4).XData = edges(1:end-1);
+                im(4).YData = histcounts( imData, edges );
+                ax(4).XLim = [cmin cmax];
+            end
+            function roi_r_3_moved( roi_r, im4D, im, ax )
+                imData = squeeze( mean(im4D,[3 4]) );
+            
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(2).CData = imData;
+                im(4).XData = edges(1:end-1);
+                im(4).YData = histcounts( imData, edges );
+                ax(4).XLim = [cmin cmax];
             end
             
-            function setContrast(ax,sl_min,sl_max)
-                caxis(ax,[sl_min.Value, sl_max.Value])
+            function roi_k_1_moved( roi_k, im4D, im,ax )
+                xy = round( roi_k(1).Position);
+                x = xy(1); y = xy(2);
+                imData = squeeze(im4D(y,x,:,:));
+            
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(1).CData = imData;
+                im(3).XData = edges(1:end-1);
+                im(3).YData = histcounts( imData, edges );
+                ax(3).XLim = [cmin cmax];
+            end
+            function roi_k_2_moved( roi_k, im4D, im,ax )
+                xywh = round(roi_k(2).Position);
+                x = xywh(1); y = xywh(2); w = xywh(3); h = xywh(4);
+                imData = squeeze( mean(im4D(y:(y+h),x:(x+w),:,:),[1 2]) );
+            
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(1).CData = imData;
+                im(3).XData = edges(1:end-1);
+                im(3).YData = histcounts( imData, edges );
+                ax(3).XLim = [cmin cmax];
+            end
+            function roi_k_3_moved( roi_k, im4D, im, ax)
+                imData = squeeze( mean(im4D,[1 2]) );
+            
+                cmin = min( imData(:)); cmax = max( imData(:) );
+                edges = linspace( cmin, cmax, 256);
+            
+                im(1).CData = imData;
+                im(3).XData = edges(1:end-1);
+                im(3).YData = histcounts( imData, edges );
+                ax(3).XLim = [cmin cmax];
             end
         end
 
