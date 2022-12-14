@@ -77,7 +77,7 @@ function test4D(im4D)
     addlistener( roi_r(1),'MovingROI',@(src,evnt) roi_r_1_moved( roi_r,im4D,im, ax) );
     addlistener( roi_r(2),'MovingROI',@(src,evnt) roi_r_2_moved( roi_r,im4D,im, ax) );
     addlistener( roi_r(3),'MovingROI',@(src,evnt) roi_r_3_moved( roi_r,im4D,im, ax) );
-    selector_r.Callback = @(src,evt) select_roi_r(src, roi_r, im4D, im);
+    selector_r.Callback = @(src,evt) select_roi_r(src, roi_r, im4D, im, ax);
 
     % K Space Selector
     selector_k = uicontrol(f, "Style", "popupmenu", ...
