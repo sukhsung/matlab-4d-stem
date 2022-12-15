@@ -10,7 +10,6 @@ function [empad_data] = read_empad(fname, ns, empad_old)
     nx = 128;
     ny = 128;
 
-
     if nargin == 2 || empad_old == false
         A = fread(fid, nx*(ny+2)*nsx*nsy,'long',0,'l');
         A = reshape(A,[ny, nx+2,nsx,nsy]);
